@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini GameGen - AI-Powered HTML5 Game Creation | game.pesonapath.my.id</title>
+  
+  <meta name="description" content="Instantly create HTML5 games with AI! Describe your game idea and Gemini GameGen, powered by Google's Gemini API, generates HTML, CSS, and JavaScript. Edit, play, and save your unique web games. Perfect for rapid prototyping and learning game development on game.pesonapath.my.id.">
+  <meta name="keywords" content="AI game generator, HTML5 game creation, JavaScript game code, CSS game design, Gemini API, AI game development, generate games with AI, no-code game development, low-code game development, web games, game.pesonapath.my.id, create HTML games, AI coding assistant for games">
+  <link rel="canonical" href="https://game.pesonapath.my.id/">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://game.pesonapath.my.id/">
+  <meta property="og:title" content="Gemini GameGen - AI-Powered HTML5 Game Creation">
+  <meta property="og:description" content="Describe a game and watch AI bring it to life! Generate, edit, and play HTML5 games with Gemini GameGen.">
+  <meta property="og:image" content="https://game.pesonapath.my.id/images/og-image.png"> 
+  <meta property="og:image:alt" content="Gemini GameGen - AI Powered Game Creation tool interface">
+  <meta property="og:site_name" content="Gemini GameGen">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://game.pesonapath.my.id/">
+  <meta property="twitter:title" content="Gemini GameGen - AI-Powered HTML5 Game Creation">
+  <meta property="twitter:description" content="Describe a game and watch AI bring it to life! Generate, edit, and play HTML5 games with Gemini GameGen.">
+  <meta property="twitter:image" content="https://game.pesonapath.my.id/images/og-image.png">
+  <meta property="twitter:image:alt" content="Gemini GameGen - AI Powered Game Creation tool interface">
+  <!-- <meta name="twitter:site" content="@yourtwitterhandle"> -->
+  <!-- <meta name="twitter:creator" content="@yourtwitterhandle"> -->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar for webkit browsers */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #2d3748; /* gray-800 */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4a5568; /* gray-600 */
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #718096; /* gray-500 */
+    }
+    /* Basic body styling */
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+      background-color: #1a202c; /* gray-900 */
+      color: #e2e8f0; /* gray-300 */
+    }
+    /* Custom scrollbar for textareas inside CodeViewer */
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+        background-color: #4a5568; /* gray-600 */
+        border-radius: 3px;
+    }
+    .scrollbar-thumb-gray-600:hover::-webkit-scrollbar-thumb {
+        background-color: #718096; /* gray-500 */
+    }
+    .scrollbar-track-gray-800::-webkit-scrollbar-track {
+        background-color: #2d3748; /* gray-800 */
+    }
+
+    /* Fullscreen Mode Styles */
+    .app-container.game-fullscreen-active > header,
+    .app-container.game-fullscreen-active > main > form,
+    .app-container.game-fullscreen-active > main > .grid:not(:has(.game-display-wrapper-fullscreen)), /* Hides action buttons grid */
+    .app-container.game-fullscreen-active > main > div:has(.lg\\:col-span-1), /* Hides history panel parent specifically */
+    .app-container.game-fullscreen-active > main > div:has(textarea), /* Hides CodeViewer parent */
+    .app-container.game-fullscreen-active > footer {
+      display: none !important;
+    }
+
+    .game-display-wrapper.game-display-wrapper-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important; /* Override Tailwind max-w */
+      max-height: 100vh !important; /* Override Tailwind max-h */
+      z-index: 2147483647 !important; /* Max z-index */
+      padding: 0 !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      /* Ensure GameDisplay (iframe) inside fills this */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Ensure the GameDisplay component itself and its iframe fills the fullscreen wrapper */
+    .game-display-wrapper-fullscreen > div:first-child, /* Targets GameDisplay child */
+    .game-display-wrapper-fullscreen > div:first-child > iframe {
+        flex-grow: 1 !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important; /* Remove border radius from iframe if any */
+    }
+
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.4.0",
+    "@/": "./"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Gemini GameGen",
+  "url": "https://game.pesonapath.my.id/",
+  "description": "Instantly create HTML5 games with AI! Describe your game idea and Gemini GameGen, powered by Google's Gemini API, generates HTML, CSS, and JavaScript. Edit, play, and save your unique web games.",
+  "applicationCategory": "Game",
+  "operatingSystem": "All (Web-based)",
+  "browserRequirements": "Requires a modern web browser with JavaScript enabled.",
+  "softwareVersion": "1.0.0", 
+  "offers": {
+    "@type": "Offer",
+    "price": "0" 
+  },
+  "keywords": "AI game generator, HTML5 game creation, JavaScript game code, CSS game design, Gemini API, AI game development, web games",
+  "creator": {
+    "@type": "Organization",
+    "name": "PesonaPath", 
+    "url": "https://pesonapath.my.id" 
+  },
+  "image": "https://game.pesonapath.my.id/images/og-image.png",
+  "potentialAction": {
+    "@type": "CreateAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://game.pesonapath.my.id/"
+    }
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Gemini GameGen - AI HTML5 Game Creator",
+  "description": "Instantly create HTML5 games with AI! Describe your game idea and Gemini GameGen, powered by Google's Gemini API, generates the HTML, CSS, and JavaScript code. Edit, play, and save your creations on game.pesonapath.my.id.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
