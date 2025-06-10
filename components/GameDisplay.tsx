@@ -91,7 +91,7 @@ export const GameDisplay: React.FC<GameDisplayProps> = ({ gameCode, previewKey }
       key={previewKey} // This is crucial for forcing re-render
       srcDoc={srcDoc}
       title="Generated Game Preview"
-      className="w-full h-full border-0 rounded-lg bg-gray-700" // bg-gray-700 for the iframe itself before content loads
+      className="w-full h-full border-0 rounded-lg bg-gray-700 z-10" // bg-gray-700 for the iframe itself before content loads
       sandbox="allow-scripts allow-same-origin" // allow-same-origin might be needed for certain JS interactions, e.g., canvas. Be cautious.
                                                 // For most simple self-contained games, "allow-scripts" is enough.
                                                 // If games need localStorage or other origin-specific features, allow-same-origin would be necessary.
