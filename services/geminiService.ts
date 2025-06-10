@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { GeneratedGameCode, GeminiGameCodeResponse } from '../types';
 
@@ -31,12 +30,17 @@ The HTML should be the core structure for the game elements.
 
 Return your response as a single JSON object with the following exact structure:
 {
+  "id": "uuid"
+  "name": "Simple Game name based on prompt",
   "html": "<!DOCTYPE html><html><head>...</head><body>...</body></html> or just the body content like <div>...</div>",
   "css": "body { ... } .game-element { ... }",
   "js": "(function() { ... })(); // All game logic here"
 }
 
 User's revision request: "${userPrompt}"
+
+Current id:
+${existingCode.id}
 
 Current HTML:
 \`\`\`html
@@ -69,6 +73,8 @@ The HTML should be the core structure for the game elements.
 
 Return your response as a single JSON object with the following exact structure:
 {
+  "id": "uuid",
+  "name": "Game name based on the prompt",
   "html": "<!DOCTYPE html><html><head>...</head><body>...</body></html> or just the body content like <div>...</div>",
   "css": "body { ... } .game-element { ... }",
   "js": "(function() { ... })(); // All game logic here"
@@ -106,11 +112,15 @@ Focus on playability and simplicity.
     
     try {
         const parsedData = JSON.parse(cleanJson) as GeminiGameCodeResponse;
-        if (typeof parsedData.html === 'string' && typeof parsedData.css === 'string' && typeof parsedData.js === 'string') {
+        if (typeof parsedData.id === 'string' && 
+            typeof parsedData.name === 'string' && 
+            typeof parsedData.html === 'string' && 
+            typeof parsedData.css === 'string' && 
+            typeof parsedData.js === 'string') {
             return parsedData;
         } else {
             console.error("Parsed JSON does not match expected structure:", parsedData);
-            throw new Error("AI response did not provide game code in the expected format. Missing html, css, or js properties.");
+            throw new Error("AI response did not provide game code in the expected format. Missing required properties.");
         }
     } catch (e) {
         console.error("Failed to parse JSON response from AI:", e);

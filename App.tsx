@@ -32,6 +32,8 @@ const App: React.FC = () => {
   const [currentHtml, setCurrentHtml] = useState<string>('');
   const [currentCss, setCurrentCss] = useState<string>('');
   const [currentJs, setCurrentJs] = useState<string>('');
+  const [currentId, setCurrentId] = useState<string>('');
+  const [currentName, setCurrentName] = useState<string>('');
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,9 @@ const App: React.FC = () => {
   }, [currentHtml, currentCss, currentJs]);
 
   useEffect(() => {
-    saveGameHistory(gameHistory);
+    if (gameHistory.length > 0) {
+      saveGameHistory(gameHistory);
+    }
   }, [gameHistory]);
 
   // Fullscreen change listener
@@ -97,11 +101,19 @@ const App: React.FC = () => {
 
     try {
       const codeToRevise = hasEditableCode 
-        ? { html: currentHtml, css: currentCss, js: currentJs } 
+        ? { 
+            id: currentId || crypto.randomUUID(), 
+            name: currentName, 
+            html: currentHtml, 
+            css: currentCss, 
+            js: currentJs 
+          } 
         : null;
 
       const code = await generateGameFromPrompt(prompt, codeToRevise);
       setGeneratedCode(code); 
+      setCurrentId(code.id);
+      setCurrentName(code.name);
       setCurrentHtml(code.html);
       setCurrentCss(code.css);
       setCurrentJs(code.js);
@@ -116,7 +128,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [prompt, currentHtml, currentCss, currentJs, hasEditableCode]);
+  }, [prompt, currentHtml, currentCss, currentJs, hasEditableCode, currentId, currentName]);
 
   const handleApplyPreview = useCallback(() => {
     setGamePreviewKey(prev => prev + 1);
@@ -127,17 +139,39 @@ const App: React.FC = () => {
         setError("There's no code to save to history. Generate or write some code first.");
         return;
     }
-    const name = prompt.trim() || `Saved - ${new Date().toLocaleString()}`;
+
+    // Check if a game with the same ID already exists
+    const existingGameIndex = gameHistory.findIndex(entry => entry.code.id === currentId);
+    const name = currentName;
+    
     const newEntry: SavedGameEntry = {
       id: crypto.randomUUID(),
       name,
-      code: { html: currentHtml, css: currentCss, js: currentJs },
+      code: { 
+        id: currentId, 
+        name: name,
+        html: currentHtml, 
+        css: currentCss, 
+        js: currentJs 
+      },
       timestamp: Date.now(),
     };
-    setGameHistory(prev => [newEntry, ...prev]); 
+
+    if (existingGameIndex !== -1) {
+      // Update existing entry
+      setGameHistory(prev => {
+        const newHistory = [...prev];
+        newHistory[existingGameIndex] = newEntry;
+        return newHistory;
+      });
+    } else {
+      // Add new entry
+      setGameHistory(prev => [newEntry, ...prev]);
+    }
+    
     setPrompt(''); 
     setError(null); 
-  }, [prompt, currentHtml, currentCss, currentJs, hasEditableCode]);
+  }, [prompt, currentHtml, currentCss, currentJs, hasEditableCode, currentId, gameHistory]);
 
   const handleLoadFromHistory = useCallback((id: string) => {
     const entry = gameHistory.find(e => e.id === id);
@@ -146,6 +180,8 @@ const App: React.FC = () => {
       setCurrentHtml(entry.code.html);
       setCurrentCss(entry.code.css);
       setCurrentJs(entry.code.js);
+      setCurrentId(entry.code.id);
+      setCurrentName(entry.code.name);
       setGamePreviewKey(prev => prev + 1);
       setError(null);
     }
@@ -153,6 +189,7 @@ const App: React.FC = () => {
 
   const handleDeleteFromHistory = useCallback((id: string) => {
     setGameHistory(prevHistory => prevHistory.filter(e => e.id !== id));
+    saveGameHistory(gameHistory);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -287,10 +324,16 @@ const App: React.FC = () => {
         <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[50vh] sm:min-h-[60vh] lg:min-h-[600px]">
           <div 
             ref={gameDisplayWrapperRef} 
-            className={`game-display-wrapper lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl overflow-hidden p-1 relative ${isGameFullscreen ? 'game-display-wrapper-fullscreen' : ''}`}
+            className={`game-display-wrapper min-h-[400px] lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl overflow-hidden p-1 relative ${isGameFullscreen ? 'game-display-wrapper-fullscreen' : ''}`}
           >
             <GameDisplay 
-              gameCode={hasEditableCode ? { html: currentHtml, css: currentCss, js: currentJs } : null} 
+              gameCode={hasEditableCode ? { 
+                id: currentId || crypto.randomUUID(),
+                name: prompt.trim() || 'Untitled Game',
+                html: currentHtml, 
+                css: currentCss, 
+                js: currentJs 
+              } : null} 
               previewKey={gamePreviewKey}
             />
             <button
@@ -307,7 +350,7 @@ const App: React.FC = () => {
                 <ArrowsPointingOutIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />}
             </button>
           </div>
-          <div className="lg:col-span-1 bg-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col min-h-[300px] lg:min-h-0">
+          <div className="lg:col-span-1 bg-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col min-h-[200px] lg:min-h-0">
              <HistoryPanel 
                 history={gameHistory}
                 onLoad={handleLoadFromHistory}

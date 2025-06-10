@@ -1,4 +1,6 @@
 export interface GeneratedGameCode {
+  id: string;
+  name: string;
   html: string;
   css: string;
   js: string;
@@ -6,6 +8,8 @@ export interface GeneratedGameCode {
 
 // Used for parsing the JSON response from Gemini
 export interface GeminiGameCodeResponse {
+  id: string;
+  name: string;
   html: string;
   css: string;
   js: string;
