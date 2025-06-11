@@ -20,12 +20,13 @@ import {
   SparklesIcon, 
   PlayIcon, 
   ArrowPathIcon,
-  ArchiveBoxArrowDownIcon,
+  SaveIcon,
   ArrowUturnLeftIcon,
   ArrowsPointingOutIcon, // Added
   ArrowsPointingInIcon   // Added
 } from './components/icons/EditorIcons';
 import './styles/animations.css';
+import { LoadingModal } from './components/LoadingModal';
 
 const App: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
@@ -57,13 +58,15 @@ const App: React.FC = () => {
       setCurrentHtml(loadedCode.html);
       setCurrentCss(loadedCode.css);
       setCurrentJs(loadedCode.js);
+      setCurrentId(loadedCode.id);
+      setCurrentName(loadedCode.name)
       setGamePreviewKey(prev => prev + 1); 
     }
     setGameHistory(loadGameHistory());
   }, []); 
 
   useEffect(() => {
-    saveCurrentCode(currentHtml, currentCss, currentJs);
+    saveCurrentCode(currentHtml, currentCss, currentJs, currentId, currentName);
   }, [currentHtml, currentCss, currentJs]);
 
   useEffect(() => {
@@ -201,6 +204,7 @@ const App: React.FC = () => {
       setCurrentHtml('');
       setCurrentCss('');
       setCurrentJs('');
+      setCurrentId('');
       setGeneratedCode(null);
       setGamePreviewKey(prev => prev + 1); 
       setError(null);
@@ -211,6 +215,18 @@ const App: React.FC = () => {
     setCurrentView(view);
     window.scrollTo(0, 0); 
   };
+
+  useEffect(() => {
+    if (isLoading) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isLoading]);
 
   // Fullscreen toggle handler
   const handleToggleFullscreen = useCallback(async () => {
@@ -245,6 +261,7 @@ const App: React.FC = () => {
       <div className="animated-bg" />
       <ParticlesBackground />
       <CustomCursor />
+      <LoadingModal isLoading={isLoading} />
       <div 
         className={`app-container min-h-screen text-gray-200 flex flex-col items-center p-2 sm:p-4 lg:p-6 ${isGameFullscreen ? 'game-fullscreen-active' : ''}`}
       >
@@ -257,6 +274,9 @@ const App: React.FC = () => {
           </div>
           <p className="mt-2 text-base sm:text-lg text-gray-400">
             Describe a game, revise existing code, or load a game from your history.
+          </p>
+          <p>
+          {currentId}
           </p>
         </header>
 
@@ -297,37 +317,8 @@ const App: React.FC = () => {
           </form>
 
           {error && <ErrorMessage message={error} />}
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 my-2 sm:my-4 w-full">
-              <button
-                  onClick={handleApplyPreview}
-                  disabled={isLoading || !hasEditableCode}
-                  className="flex items-center justify-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base btn-animate"
-                  aria-label="Apply manual code changes and refresh game preview"
-              >
-                  <ArrowPathIcon className="h-5 w-5 mr-2" />
-                  Apply Edits & Refresh
-              </button>
-              <button
-                  onClick={handleSaveToHistory}
-                  disabled={isLoading || !hasEditableCode}
-                  className="flex items-center justify-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base btn-animate"
-                  aria-label="Save current code and prompt to history"
-              >
-                  <ArchiveBoxArrowDownIcon className="h-5 w-5 mr-2" />
-                  Save to History
-              </button>
-              <button
-                  onClick={handleReset}
-                  disabled={isLoading}
-                  className="flex items-center justify-center px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base btn-animate"
-                  aria-label="Reset current prompt, code, and preview"
-              >
-                  <ArrowUturnLeftIcon className="h-5 w-5 mr-2" />
-                  Reset Current State
-              </button>
-          </div>
 
+          {/* display game */}
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[50vh] sm:min-h-[60vh] lg:min-h-[600px]">
             <div 
               ref={gameDisplayWrapperRef} 
@@ -346,17 +337,47 @@ const App: React.FC = () => {
                 />
               </div>
 
-              <button
-                onClick={handleToggleFullscreen}
-                className={`absolute top-2 left-2 z-20 p-1.5 sm:p-2 w-10 h-10 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out group btn-animate
-                            bg-white/30 hover:bg-white/50 text-gray-800`}
-                aria-label={isGameFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                title={isGameFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              >
-                {isGameFullscreen ? 
-                  <ArrowsPointingInIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" /> : 
-                  <ArrowsPointingOutIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />}
-              </button>
+              <div className='absolute top-2 left-2 flex gap-2 z-20 p-1.5 sm:p-2'>
+                <button
+                  onClick={handleToggleFullscreen}
+                  className={`p-1.5 sm:p-2 w-10 h-10 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out group btn-animate
+                              bg-white/30 hover:bg-white/50 text-gray-800`}
+                  aria-label={isGameFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  title={isGameFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isGameFullscreen ? 
+                    <ArrowsPointingInIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" /> : 
+                    <ArrowsPointingOutIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />}
+                </button>
+                <button
+                  onClick={handleApplyPreview}
+                  disabled={isLoading || !hasEditableCode}
+                  className={`p-1.5 sm:p-2 w-10 h-10 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out group btn-animate
+                              bg-white/30 hover:bg-white/50 text-gray-800 disabled:cursor-not-allowed`}
+                  aria-label={isGameFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  title={isGameFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  <ArrowPathIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                </button>
+                <button
+                  onClick={handleReset}
+                  disabled={isLoading}
+                  className={`p-1.5 sm:p-2 w-10 h-10 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out group btn-animate
+                    bg-white/30 hover:bg-white/50 text-gray-800 disabled:cursor-not-allowed`}
+                  aria-label="Reset current prompt, code, and preview"
+                >
+                    <ArrowUturnLeftIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                </button>
+                <button
+                  onClick={handleSaveToHistory}
+                  disabled={isLoading || !hasEditableCode}
+                  className={`p-1.5 sm:p-2 w-10 h-10 flex justify-center items-center rounded-full transition-all duration-200 ease-in-out group btn-animate
+                    bg-white/30 hover:bg-white/50 text-gray-800 disabled:cursor-not-allowed`}
+                  aria-label="Save current code and prompt to history"
+                >
+                    <SaveIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              </div>
             </div>
             <div className="lg:col-span-1 bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden flex flex-col min-h-[200px] lg:min-h-0 card-hover">
                <HistoryPanel 
@@ -380,6 +401,38 @@ const App: React.FC = () => {
               />
           </div>
         </main>
+
+        <footer className="w-full max-w-6xl mt-8 sm:mt-12 text-center text-sm text-gray-500">
+          <div className="flex justify-center space-x-4 mb-4">
+            <button 
+              onClick={() => navigateTo('terms')} 
+              className="hover:text-purple-300 transition-colors focus:outline-none focus:ring-1 focus:ring-purple-400 rounded"
+              aria-label="View Terms of Service"
+            >
+              Terms of Service
+            </button>
+            <button 
+              onClick={() => navigateTo('privacy')} 
+              className="hover:text-purple-300 transition-colors focus:outline-none focus:ring-1 focus:ring-purple-400 rounded"
+              aria-label="View Privacy Policy"
+            >
+              Privacy Policy
+            </button>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <img src="/logo.svg" alt="Gemini GameGen Logo" className="w-6 h-6" />
+            <p>
+              &copy; {new Date().getFullYear()} 
+              <a href="https://game.pesonapath.my.id" target="_blank" rel="noopener noreferrer" className="hover:text-purple-300 transition-colors mx-1">
+                Gemini GameGen
+              </a>
+              by 
+              <a href="https://pesonapath.my.id" target="_blank" rel="noopener noreferrer" className="hover:text-purple-300 transition-colors ml-1">
+                PesonaPath
+              </a>
+            </p>
+          </div>
+        </footer>
       </div>
     </>
   );
