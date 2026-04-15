@@ -1,7 +1,7 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { GeneratedGameCode, GeminiGameCodeResponse } from '../types';
 
-const MODEL_NAME = 'gemini-2.0-flash';
+const MODEL_NAME = 'gemini-2.5-flash';
 
 export const generateGameFromPrompt = async (
   userPrompt: string,
